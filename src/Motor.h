@@ -11,6 +11,9 @@
 
 class Motor {
 public:
+    enum Mode {
+        GO, OSCILLATE
+    };
 
     Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis);
 
@@ -22,13 +25,24 @@ public:
 
     void activate();
 
+    int getAxis();
+
+    void setFirstDest(int dest);
+
+    void setSecondDest(int dest);
+
 private:
+    Mode mode = GO;
+public:
+    void setMode(Mode mode);
+
+private:
+    int destinations[2]{0, 0};
     char axis;
     MegaEncoderCounter &megaEncoderCounter;
     uint8_t pin1;
     uint8_t pin2;
     uint8_t pwm_e;
-    int destination;
 };
 
 

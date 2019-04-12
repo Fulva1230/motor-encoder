@@ -22,7 +22,7 @@ void setup() {
     pinMode(PIN_2, OUTPUT);
     pinMode(PINA_PWM, OUTPUT);
     megaEncoderCounter.XAxisReset();
-
+    megaEncoderCounter.YAxisReset();
 }
 
 void loop() {
@@ -34,7 +34,7 @@ void loop() {
         command = Serial.readString();
         h = command[0];
         motor_sel = command.substring(1, 2).toInt();
-        number = command.substring(2).toInt();
+        number = command.substring(2).toInt() / 360.0 * 4440;
         Motor *motor;
         switch (motor_sel) {
             case 1:
@@ -43,18 +43,35 @@ void loop() {
             case 2:
                 motor = &motor2;
                 break;
+            default:
+                motor = &motor1;
         }
         switch (h) {
             case 'R':
                 motor->resetAxis();
+                Serial.println("Reset Axis");
                 break;
             case 'G':
+                motor->setMode(Motor::GO);
                 Serial.println("go to");
                 motor->goTo(number);
                 break;
+            case 'O':
+                motor->setMode(Motor::OSCILLATE);
+                Serial.println("set oscillate dis1:");
+                Serial.println(number);
+                motor->setFirstDest(number);
+                break;
+            case 'S':
+                motor->setMode(Motor::OSCILLATE);
+                Serial.println("set oscillate dis2:");
+                Serial.println(number);
+                motor->setSecondDest(number);
+                break;
+
             case 'P':
                 Serial.print("current position: ");
-                Serial.println(megaEncoderCounter.XAxisGetCount());
+                Serial.println(motor->getAxis());
         }
     }
     motor1.activate();

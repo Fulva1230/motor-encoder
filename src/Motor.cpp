@@ -34,7 +34,7 @@ void Motor::drive(long speed) {
 }
 
 void Motor::goTo(long destination) {
-    this->destination = destination;
+    this->destinations[0] = destination;
 }
 
 void Motor::activate() {
@@ -46,11 +46,20 @@ void Motor::activate() {
         case 'y':
             position = megaEncoderCounter.YAxisGetCount();
             break;
+        default:
+//            should not be here
+            break;
     }
-    if (abs(destination - position) > 100) {
-        drive(destination - position);
+    if (mode == OSCILLATE && abs(destinations[0] - position) <= 50) {
+        int swap;
+        swap = destinations[0];
+        destinations[0] = destinations[1];
+        destinations[1] = swap;
+    }
+    if (abs(destinations[0] - position) > 50) {
+        drive(destinations[0] - position);
         Serial.print("run left:");
-        Serial.println(abs(destination - position));
+        Serial.println(abs(destinations[0] - position));
     } else {
         drive(0);
     }
@@ -65,4 +74,26 @@ void Motor::resetAxis() {
             megaEncoderCounter.YAxisReset();
             break;
     }
+}
+
+int Motor::getAxis() {
+    switch (axis) {
+        case 'x':
+            return megaEncoderCounter.XAxisGetCount();
+        case 'y':
+            return megaEncoderCounter.YAxisGetCount();
+    }
+    return 0;
+}
+
+void Motor::setMode(Motor::Mode mode) {
+    Motor::mode = mode;
+}
+
+void Motor::setFirstDest(int dest) {
+    this->destinations[0] = dest;
+}
+
+void Motor::setSecondDest(int dest) {
+    this->destinations[1] = dest;
 }
