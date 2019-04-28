@@ -25,6 +25,14 @@ void setup() {
     megaEncoderCounter.YAxisReset();
 }
 
+void interrupt1() {
+    motor1.setMode(Motor::STOP);
+}
+
+void interrupt2() {
+    motor2.setMode(Motor::STOP);
+}
+
 void loop() {
     String command;
     char h;
@@ -68,11 +76,26 @@ void loop() {
                 Serial.println(number);
                 motor->setSecondDest(number);
                 break;
-
             case 'P':
                 Serial.print("current position: ");
                 Serial.println(motor->getAxis());
+                break;
+            case 'T':
+                motor->setMode(Motor::STOP);
+                break;
+            case 'H':
+                motor->setMode(Motor::HOME);
+                detachInterrupt(digitalPinToInterrupt(motor->getHomePin()));
+                motor->setNeedAttach(false);
         }
+    }
+    if (motor1.getNeedAttach()) {
+        attachInterrupt(digitalPinToInterrupt(motor1.getHomePin()), interrupt1, RISING);
+        motor1.setNeedAttach(false);
+    }
+    if (motor2.getNeedAttach()) {
+        attachInterrupt(digitalPinToInterrupt(motor2.getHomePin()), interrupt2, RISING);
+        motor2.setNeedAttach(false);
     }
     motor1.activate();
     motor2.activate();

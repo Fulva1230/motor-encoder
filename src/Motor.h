@@ -13,7 +13,7 @@
 class Motor {
 public:
     enum Mode {
-        GO, OSCILLATE
+        GO, OSCILLATE, STOP, HOME
     };
 
     Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
@@ -22,8 +22,6 @@ public:
     void drive(long speed);
 
     void goTo(long destination);
-
-    void findHome();
 
     void resetAxis();
 
@@ -35,10 +33,18 @@ public:
 
     void setSecondDest(int dest);
 
-private:
-    Mode mode = GO;
-public:
+    Mode getMode();
+
+    uint8_t getHomePin() const;
+
+    boolean getNeedAttach() const;
+
+    void setNeedAttach(boolean needAttach);
+
     void setMode(Mode mode);
+
+private:
+    Mode mode{STOP};
 
 private:
     int destinations[2]{0, 0};
@@ -47,6 +53,8 @@ private:
     uint8_t pin1;
     uint8_t pin2;
     uint8_t pwm_e;
+    uint8_t homePin;
+    boolean needAttach{true};
     ResetResponse resetResponse;
 };
 

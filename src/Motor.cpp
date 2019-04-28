@@ -13,7 +13,8 @@ Motor::Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaE
                                 pwm_e(pwmE),
                                 megaEncoderCounter(megaEncoderCounter1),
                                 axis(axis),
-                                resetResponse(homePin), {}
+                                resetResponse(homePin),
+                                homePin(homePin) {}
 
 void Motor::drive(long speed) {
     if (speed > 0) {
@@ -37,34 +38,44 @@ void Motor::drive(long speed) {
 }
 
 void Motor::goTo(long destination) {
+    mode = GO;
     this->destinations[0] = destination;
 }
 
 void Motor::activate() {
-    int position;
-    switch (axis) {
-        case 'x':
-            position = megaEncoderCounter.XAxisGetCount();
+    int position(getAxis());
+    switch (mode) {
+        case OSCILLATE:
+            if (abs(destinations[0] - position) <= 50) {
+                int swap;
+                swap = destinations[0];
+                destinations[0] = destinations[1];
+                destinations[1] = swap;
+            }
+            drive(destinations[0] - position);
+            Serial.print("run left:");
+            Serial.println(abs(destinations[0] - position));
             break;
-        case 'y':
-            position = megaEncoderCounter.YAxisGetCount();
+        case GO:
+            if (abs(destinations[0] - position) > 50) {
+                drive(destinations[0] - position);
+                Serial.print("run left:");
+                Serial.println(abs(destinations[0] - position));
+            } else {
+                drive(0);
+                mode = STOP;
+            }
             break;
-        default:
-//            should not be here
-            break;
-    }
-    if (mode == OSCILLATE && abs(destinations[0] - position) <= 50) {
-        int swap;
-        swap = destinations[0];
-        destinations[0] = destinations[1];
-        destinations[1] = swap;
-    }
-    if (abs(destinations[0] - position) > 50) {
-        drive(destinations[0] - position);
-        Serial.print("run left:");
-        Serial.println(abs(destinations[0] - position));
-    } else {
-        drive(0);
+        case HOME:
+            drive(100);
+            if (resetResponse.isActivate()) {
+                drive(0);
+                mode = STOP;
+                resetAxis();
+                goTo(0);
+            }
+        case STOP:
+            drive(0);
     }
 }
 
@@ -82,9 +93,11 @@ void Motor::resetAxis() {
 int Motor::getAxis() {
     switch (axis) {
         case 'x':
-            return megaEncoderCounter.XAxisGetCount();
+            return megaEncoderCounter.XAxisGetCount() > INT32_MAX ? megaEncoderCounter.XAxisGetCount() - UINT32_MAX - 1
+                                                                  : megaEncoderCounter.XAxisGetCount();
         case 'y':
-            return megaEncoderCounter.YAxisGetCount();
+            return megaEncoderCounter.YAxisGetCount() > INT32_MAX ? megaEncoderCounter.YAxisGetCount() - UINT32_MAX - 1
+                                                                  : megaEncoderCounter.YAxisGetCount();
     }
     return 0;
 }
@@ -101,6 +114,19 @@ void Motor::setSecondDest(int dest) {
     this->destinations[1] = dest;
 }
 
-void Motor::findHome() {
-
+Motor::Mode Motor::getMode() {
+    return mode;
 }
+
+boolean Motor::getNeedAttach() const {
+    return needAttach;
+}
+
+void Motor::setNeedAttach(boolean needAttach) {
+    Motor::needAttach = needAttach;
+}
+
+uint8_t Motor::getHomePin() const {
+    return homePin;
+}
+
