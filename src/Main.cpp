@@ -6,15 +6,15 @@
 #include <MegaEncoderCounter.h>
 #include "Motor.h"
 
-#define PIN_1 5
-#define PIN_2 6
-#define PINA_PWM 7
-#define PIN_3 8
-#define PIN_4 9
-#define PINB_PWM 10
+#define PIN_1 1
+#define PIN_2 5
+#define PINA_PWM 53
+#define PIN_3 10
+#define PIN_4 11
+#define PINB_PWM 7
 MegaEncoderCounter megaEncoderCounter;
-Motor motor1(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'x');
-Motor motor2(PIN3, PIN4, PINB_PWM, megaEncoderCounter, 'y');
+Motor motor1(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'x', 0);
+Motor motor2(PIN_3, PIN_4, PINB_PWM, megaEncoderCounter, 'y', 0);
 
 void setup() {
     Serial.begin(9600);
@@ -34,7 +34,7 @@ void loop() {
         command = Serial.readString();
         h = command[0];
         motor_sel = command.substring(1, 2).toInt();
-        number = command.substring(2).toInt() / 360.0 * 4440;
+        number = command.substring(2).toInt();
         Motor *motor;
         switch (motor_sel) {
             case 1:

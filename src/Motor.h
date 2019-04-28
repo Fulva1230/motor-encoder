@@ -8,6 +8,7 @@
 
 #include <stdint-gcc.h>
 #include <MegaEncoderCounter.h>
+#include "ResetResponse.h"
 
 class Motor {
 public:
@@ -15,11 +16,14 @@ public:
         GO, OSCILLATE
     };
 
-    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis);
+    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
+          uint8_t homePin);
 
     void drive(long speed);
 
     void goTo(long destination);
+
+    void findHome();
 
     void resetAxis();
 
@@ -43,6 +47,7 @@ private:
     uint8_t pin1;
     uint8_t pin2;
     uint8_t pwm_e;
+    ResetResponse resetResponse;
 };
 
 
