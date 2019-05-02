@@ -72,6 +72,7 @@ void Motor::activate() {
                 drive(0);
                 mode = STOP;
                 resetAxis();
+                setNeedAttach(true);
                 goTo(0);
             }
         case STOP:
