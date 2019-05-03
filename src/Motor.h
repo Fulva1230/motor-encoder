@@ -16,12 +16,14 @@ public:
         GO, OSCILLATE, STOP, HOME
     };
 
-    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
-          uint8_t homePin);
+    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis, uint8_t homePin,
+          double angToCou, uint8_t maxSpeed);
 
     void drive(long speed);
 
     void goTo(long destination);
+
+    void driveAngle(long desAng);
 
     void resetAxis();
 
@@ -55,6 +57,8 @@ private:
     uint8_t pwm_e;
     uint8_t homePin;
     boolean needAttach{true};
+    double angleToCount;
+    const uint8_t maxSpeed;
     ResetResponse resetResponse;
 };
 

@@ -5,31 +5,36 @@
 #include <HID.h>
 #include "Motor.h"
 
-#define MAX_SPEED 100
 
 Motor::Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
-             uint8_t homePin) : pin1(pin1),
-                                pin2(pin2),
-                                pwm_e(pwmE),
-                                megaEncoderCounter(megaEncoderCounter1),
-                                axis(axis),
-                                resetResponse(homePin),
-                                homePin(homePin) {}
+             uint8_t homePin,
+             double angToCou, uint8_t maxSpeed) : pin1(pin1),
+                                                  pin2(pin2),
+                                                  pwm_e(pwmE),
+                                                  megaEncoderCounter(megaEncoderCounter1),
+                                                  axis(axis),
+                                                  resetResponse(homePin),
+                                                  homePin(homePin),
+                                                  angleToCount(angToCou), maxSpeed(maxSpeed) {
+    pinMode(pin1, OUTPUT);
+    pinMode(pin2, OUTPUT);
+    pinMode(pwmE, OUTPUT);
+}
 
 void Motor::drive(long speed) {
     if (speed > 0) {
         digitalWrite(pin1, LOW);
         digitalWrite(pin2, HIGH);
-        if (speed > MAX_SPEED) {
-            analogWrite(pwm_e, MAX_SPEED);
+        if (speed > maxSpeed) {
+            analogWrite(pwm_e, maxSpeed);
         } else {
             analogWrite(pwm_e, speed);
         }
     } else {
         digitalWrite(pin1, HIGH);
         digitalWrite(pin2, LOW);
-        if (abs(speed) > MAX_SPEED) {
-            analogWrite(pwm_e, MAX_SPEED);
+        if (abs(speed) > maxSpeed) {
+            analogWrite(pwm_e, maxSpeed);
         } else {
             analogWrite(pwm_e, abs(speed));
         }
@@ -58,7 +63,7 @@ void Motor::activate() {
             break;
         case GO:
             if (abs(destinations[0] - position) > 50) {
-                drive(destinations[0] - position);
+                drive((destinations[0] - position));
                 Serial.print("run left:");
                 Serial.println(abs(destinations[0] - position));
             } else {
@@ -67,14 +72,17 @@ void Motor::activate() {
             }
             break;
         case HOME:
+//            Serial.print("driving");
             drive(100);
             if (resetResponse.isActivate()) {
+                Serial.println("go home completed");
                 drive(0);
                 mode = STOP;
                 resetAxis();
                 setNeedAttach(true);
                 goTo(0);
             }
+            break;
         case STOP:
             drive(0);
     }
@@ -129,5 +137,9 @@ void Motor::setNeedAttach(boolean needAttach) {
 
 uint8_t Motor::getHomePin() const {
     return homePin;
+}
+
+void Motor::driveAngle(long desAng) {
+    goTo(desAng * angleToCount);
 }
 
