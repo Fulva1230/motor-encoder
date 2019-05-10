@@ -62,13 +62,12 @@ void Motor::activate() {
             Serial.println(abs(destinations[0] - position));
             break;
         case GO:
-            if (abs(destinations[0] - position) > 50) {
-                drive((destinations[0] - position));
+            if (abs(destinations[0] - position) > 5) {
+                drive(piController.target(destinations[0] - position));
                 Serial.print("run left:");
                 Serial.println(abs(destinations[0] - position));
             } else {
                 drive(0);
-                mode = STOP;
             }
             break;
         case HOME:
@@ -89,6 +88,7 @@ void Motor::activate() {
 }
 
 void Motor::resetAxis() {
+    destinations[0] = 0;
     switch (axis) {
         case 'x':
             megaEncoderCounter.XAxisReset();
@@ -141,5 +141,13 @@ uint8_t Motor::getHomePin() const {
 
 void Motor::driveAngle(long desAng) {
     goTo(desAng * angleToCount);
+}
+
+int Motor::getAxisAngle() {
+    return getAxis() / angleToCount;
+}
+
+void Motor::setPI(const PIController &controller) {
+    piController = controller;
 }
 

@@ -9,6 +9,7 @@
 #include <stdint-gcc.h>
 #include <MegaEncoderCounter.h>
 #include "ResetResponse.h"
+#include <PIController.h>
 
 class Motor {
 public:
@@ -35,6 +36,8 @@ public:
 
     void setSecondDest(int dest);
 
+    void setPI(const PIController &controller);
+
     Mode getMode();
 
     uint8_t getHomePin() const;
@@ -44,6 +47,8 @@ public:
     void setNeedAttach(boolean needAttach);
 
     void setMode(Mode mode);
+
+    int getAxisAngle();
 
 private:
     Mode mode{STOP};
@@ -60,6 +65,7 @@ private:
     double angleToCount;
     const uint8_t maxSpeed;
     ResetResponse resetResponse;
+    PIController piController{1, 0};
 };
 
 

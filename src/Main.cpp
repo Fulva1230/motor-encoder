@@ -17,8 +17,8 @@
 #define a1 15
 #define a2 5
 MegaEncoderCounter megaEncoderCounter;
-Motor motor1(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'y', 3, a2c2, 30);
-Motor motor2(PIN_3, PIN_4, PINB_PWM, megaEncoderCounter, 'x', 2, a2c1, 130);
+Motor motor2(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'y', 3, a2c2, 90);
+Motor motor1(PIN_3, PIN_4, PINB_PWM, megaEncoderCounter, 'x', 2, a2c1, 130);
 struct Angles {
     float th1;
     float th2;
@@ -33,10 +33,10 @@ void interrupt2() {
 }
 
 bool angleVerify(float th1, float th2) {
-    return th1 >= -90 && th1 <= 90 && th2 >= -180 && th2 <= 180;
+    return th1 >= -90 && th1 <= 90;
 }
 
-Angles transpose(float x, float y) {
+Angles transpose(float x, float y, float cth1, float cth2) {
     float th2 = acos((x * x + y * y - a1 * a1 - a2 * a2) / (2 * a1 * a2));
     float th1 = atan2(y, x) - atan2(a2 * sin(th2), a1 + a2 * cos(th2));
     float th22 = -acos((x * x + y * y - a1 * a1 - a2 * a2) / (2 * a1 * a2));
@@ -53,18 +53,24 @@ Angles transpose(float x, float y) {
     th2 = (th2 * 180) / 3.14;
     th12 = (th12 * 180) / 3.14;
     th22 = (th22 * 180) / 3.14;
+    Serial.println(th1);
+    Serial.println(th2);
+    Serial.println(th12);
+    Serial.println(th22);
     if (angleVerify(th1, th2)) {
         return Angles{.th1=th1, .th2=th2};
     } else if (angleVerify(th12, th22)) {
         return Angles{.th1=th12, .th2=th22};
     }
-    Serial.println(th1);
-    Serial.println(th2);
-    Serial.println(th12);
-    Serial.println(th22);
     return Angles{.th1=0, .th2=0};
 
 };
+
+void waitUntilAva() {
+    while (!Serial.available()) {
+        delay(50);
+    }
+}
 
 
 void setup() {
@@ -76,6 +82,26 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(motor1.getHomePin()), interrupt1, RISING);
     megaEncoderCounter.YAxisReset();
     attachInterrupt(digitalPinToInterrupt(motor2.getHomePin()), interrupt2, RISING);
+    {
+        Serial.println("set first motor kp : ");
+        waitUntilAva();
+        double kp = Serial.readStringUntil('\n').toDouble();
+        Serial.println(kp);
+        Serial.println("set first motor ki : ");
+        waitUntilAva();
+        double ki = Serial.readStringUntil('\n').toDouble();
+        Serial.println(ki);
+        motor1.setPI(PIController(kp, ki));
+        Serial.println("set second motor kp :");
+        waitUntilAva();
+        kp = Serial.readStringUntil('\n').toDouble();
+        Serial.println(kp);
+        Serial.println("set second motor ki : ");
+        waitUntilAva();
+        ki = Serial.readStringUntil('\n').toDouble();
+        Serial.println(ki);
+        motor2.setPI(PIController(kp, ki));
+    }
 }
 
 void loop() {
@@ -83,20 +109,20 @@ void loop() {
 //    Serial.println(digitalRead(3));
     String command;
     char h;
-    int number;
-    int number2(0);
+    int numbers[5];
+    int index(0);
     short motor_sel;
     if (Serial.available()) {
         command = Serial.readString();
         h = command[0];
         motor_sel = command.substring(1, 2).toInt();
         String left = command.substring(2);
-        if (left.indexOf(':') != -1) {
-            number = left.substring(0, left.indexOf(':')).toInt();
-            number2 = left.substring(left.indexOf(':') + 1).toInt();
-        } else {
-            number = left.toInt();
+        while (left.indexOf(':') != -1) {
+            numbers[index] = left.substring(0, left.indexOf(':')).toInt();
+            left = left.substring(left.indexOf(':') + 1);
+            index++;
         }
+        numbers[index] = left.toInt();
         Motor *motor;
         switch (motor_sel) {
             case 1:
@@ -110,9 +136,9 @@ void loop() {
         }
         switch (h) {
             case 'A':
-                motor->driveAngle(number);
+                motor->driveAngle(numbers[0]);
                 Serial.print("drive angle: ");
-                Serial.println(number);
+                Serial.println(numbers[0]);
                 break;
             case 'R':
                 motor->resetAxis();
@@ -120,21 +146,21 @@ void loop() {
                 break;
             case 'G':
                 Serial.println("go to");
-                motor->goTo(number);
+                motor->goTo(numbers[0]);
                 break;
             case 'O':
                 Serial.println("set oscillate dis1:");
-                Serial.println(number);
-                motor->setFirstDest(number);
+                Serial.println(numbers[0]);
+                motor->setFirstDest(numbers[0]);
                 break;
             case 'S':
                 Serial.println("set oscillate dis2:");
-                Serial.println(number);
-                motor->setSecondDest(number);
+                Serial.println(numbers[0]);
+                motor->setSecondDest(numbers[0]);
                 break;
             case 'P':
                 Serial.print("current position: ");
-                Serial.println(motor->getAxis());
+                Serial.println(motor->getAxisAngle());
                 break;
             case 'T':
                 motor->setMode(Motor::STOP);
@@ -146,13 +172,13 @@ void loop() {
                 motor->setNeedAttach(false);
                 break;
             case 'I':
-                Angles angles = transpose(number, number2);
-//                motor2.driveAngle(angles.th1);
-//                motor1.driveAngle(angles.th2);
+                Angles angles = transpose(numbers[0], numbers[1], motor1.getAxisAngle(), motor2.getAxisAngle());
+                motor1.driveAngle(angles.th1);
+                motor2.driveAngle(angles.th2);
                 Serial.print("Go to position :");
-                Serial.print(number);
+                Serial.print(numbers[0]);
                 Serial.print("::");
-                Serial.println(number2);
+                Serial.println(numbers[1]);
                 Serial.print("result th1 :");
                 Serial.print(angles.th1);
                 Serial.print("th2 :");
