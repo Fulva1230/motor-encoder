@@ -19,6 +19,8 @@ Motor::Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaE
     pinMode(pin1, OUTPUT);
     pinMode(pin2, OUTPUT);
     pinMode(pwmE, OUTPUT);
+
+
 }
 
 void Motor::drive(long speed) {
