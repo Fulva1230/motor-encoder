@@ -6,6 +6,7 @@
 #include "PIController.h"
 
 int PIController::target(int error) {
+    //TODO CAN BE TOO LARGE TIMEINTERVALE
     unsigned int timeInterval = millis() - lastTime;
     accuError += error * (timeInterval);
     inteTime += timeInterval;
