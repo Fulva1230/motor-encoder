@@ -17,8 +17,8 @@ public:
 private:
     double Kp;
     double Ki;
-    double inteTime{0};
-    double lastTime{0};
+    unsigned long inteTime{0};
+    unsigned long lastTime{0};
     double accuError{0};
 
 };

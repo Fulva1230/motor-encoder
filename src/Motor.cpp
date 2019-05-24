@@ -51,6 +51,7 @@ void Motor::goTo(long destination) {
 
 void Motor::activate() {
     int position(getAxis());
+    int speed;
     switch (mode) {
         case OSCILLATE:
             if (abs(destinations[0] - position) <= 50) {
@@ -64,13 +65,12 @@ void Motor::activate() {
             Serial.println(abs(destinations[0] - position));
             break;
         case GO:
-            if (abs(destinations[0] - position) > 5) {
-                drive(piController.target(destinations[0] - position));
-                Serial.print("run left:");
-                Serial.println(abs(destinations[0] - position));
-            } else {
-                drive(0);
-            }
+            speed = piController.target(destinations[0] - position);
+            drive(speed);
+            Serial.print("speed :");
+            Serial.println(speed);
+            Serial.print("run left:");
+            Serial.println(abs(destinations[0] - position));
             break;
         case HOME:
 //            Serial.print("driving");
