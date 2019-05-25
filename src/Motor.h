@@ -9,18 +9,21 @@
 #include <stdint-gcc.h>
 #include <MegaEncoderCounter.h>
 #include "ResetResponse.h"
+#include "Curve.h"
 #include <PIController.h>
 
 class Motor {
 public:
     enum Mode {
-        GO, OSCILLATE, STOP, HOME
+        GO, OSCILLATE, STOP, HOME, T_CURVE
     };
 
     Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis, uint8_t homePin,
           double angToCou, uint8_t maxSpeed);
 
     void drive(long speed);
+
+    void alongTcurve(Curve &curve);
 
     void goTo(long destination);
 
@@ -61,7 +64,9 @@ private:
     uint8_t pin2;
     uint8_t pwm_e;
     uint8_t homePin;
+    long curveTime{0};
     boolean needAttach{true};
+    Curve *curve;
     double angleToCount;
     const uint8_t maxSpeed;
     ResetResponse resetResponse;

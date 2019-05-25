@@ -86,6 +86,10 @@ void Motor::activate() {
             break;
         case STOP:
             drive(0);
+        case T_CURVE:
+            speed = piController.target(curve->getNowDest(curveTime));
+            curveTime++;
+            drive(speed);
     }
 }
 
@@ -151,5 +155,12 @@ int Motor::getAxisAngle() {
 
 void Motor::setPI(const PIController &controller) {
     piController = controller;
+}
+
+void Motor::alongTcurve(Curve &curve) {
+    setMode(T_CURVE);
+    curveTime = 0;
+    this->curve = &curve;
+
 }
 
