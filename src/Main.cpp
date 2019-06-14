@@ -139,6 +139,7 @@ void loop() {
             case 'E':
                 motor->alongTcurve(new aCurve(motor->getAxisAngle(), numbers[0], 10, numbers[1]));
                 Serial.println("drive curve");
+                break;
             case 'A':
                 motor->driveAngle(numbers[0]);
                 Serial.print("drive angle: ");
@@ -177,8 +178,8 @@ void loop() {
                 break;
             case 'I':
                 Angles angles = transpose(numbers[0], numbers[1], motor1.getAxisAngle(), motor2.getAxisAngle());
-                motor1.driveAngle(angles.th1);
-                motor2.driveAngle(angles.th2);
+                motor1.alongTcurve(new aCurve(motor1.getAxisAngle(), angles.th1, 10, 5000));
+                motor2.alongTcurve(new aCurve(motor2.getAxisAngle(), angles.th2, 10, 5000));
                 Serial.print("Go to position :");
                 Serial.print(numbers[0]);
                 Serial.print("::");

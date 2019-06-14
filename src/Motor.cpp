@@ -88,7 +88,7 @@ void Motor::activate() {
             drive(0);
             break;
         case T_CURVE:
-            speed = piController.target(curve->getNowDest(curveTime));
+            speed = piController.target(curve->getNowDest(curveTime) * angleToCount - position);
             ++curveTime;
             drive(speed);
             break;

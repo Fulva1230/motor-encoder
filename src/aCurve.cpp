@@ -7,11 +7,14 @@
 
 aCurve::aCurve(long initPos, long finalPos, uint16_t ta, uint16_t totalTime) : Curve(initPos, finalPos), ta(ta),
                                                                                totalTime(totalTime) {
-
+    Serial.print("total time is");
+    Serial.println(totalTime);
+    Serial.print("final pos is");
+    Serial.println(finalPos);
 }
 
 long aCurve::getNowDest(long time, long initPos, long finalPos) {
-    uint16_t vmax = finalPos - initPos / (totalTime - ta);
+    double vmax = (double) (finalPos - initPos) / (totalTime - ta);
     if (time < ta) {
         return initPos + vmax * time * time / (2 * ta);
     } else if (time < totalTime - ta) {
