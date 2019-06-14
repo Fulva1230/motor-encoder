@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <MegaEncoderCounter.h>
 #include "Motor.h"
+#include "aCurve.h"
 
 #define a2c1 15.17 // angle to count, unit:count/angle 5460/360
 #define a2c2 29.5555555 // angle to count, unit:count/angle 10640/360, angle * (count/angle) = count
@@ -135,6 +136,9 @@ void loop() {
                 motor = &motor1;
         }
         switch (h) {
+            case 'E':
+                motor->alongTcurve(new aCurve(motor->getAxisAngle(), numbers[0], 10, numbers[1]));
+                Serial.println("drive curve");
             case 'A':
                 motor->driveAngle(numbers[0]);
                 Serial.print("drive angle: ");

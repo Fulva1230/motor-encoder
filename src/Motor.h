@@ -23,7 +23,7 @@ public:
 
     void drive(long speed);
 
-    void alongTcurve(Curve &curve);
+    void alongTcurve(Curve *curve);
 
     void goTo(long destination);
 

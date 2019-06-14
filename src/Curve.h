@@ -10,7 +10,17 @@
 
 class Curve {
 public:
-    virtual long getNowDest(long time) = 0;
+
+    Curve(long initPos, long finalPos);
+
+    virtual long getNowDest(long time) final;
+
+    virtual long getNowDest(long time, long initPos, long finalPos) = 0;
+
+
+private:
+    long initPos;
+    long finalPos;
 
 
 };

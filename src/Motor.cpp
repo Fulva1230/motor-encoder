@@ -86,10 +86,12 @@ void Motor::activate() {
             break;
         case STOP:
             drive(0);
+            break;
         case T_CURVE:
             speed = piController.target(curve->getNowDest(curveTime));
-            curveTime++;
+            ++curveTime;
             drive(speed);
+            break;
     }
 }
 
@@ -157,10 +159,10 @@ void Motor::setPI(const PIController &controller) {
     piController = controller;
 }
 
-void Motor::alongTcurve(Curve &curve) {
+void Motor::alongTcurve(Curve *curve) {
+    delete this->curve;
     setMode(T_CURVE);
     curveTime = 0;
-    this->curve = &curve;
-
+    this->curve = curve;
 }
 
