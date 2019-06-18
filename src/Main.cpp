@@ -37,6 +37,12 @@ bool angleVerify(float th1, float th2) {
     return th1 >= -90 && th1 <= 90;
 }
 
+///
+/// \param x
+/// \param y
+/// \param cth1 the current angle of the motor 1
+/// \param cth2 the current angle of the motor 2
+/// \return the destination of motors
 Angles transpose(float x, float y, float cth1, float cth2) {
     float th2 = acos((x * x + y * y - a1 * a1 - a2 * a2) / (2 * a1 * a2));
     float th1 = atan2(y, x) - atan2(a2 * sin(th2), a1 + a2 * cos(th2));
@@ -58,7 +64,14 @@ Angles transpose(float x, float y, float cth1, float cth2) {
     Serial.println(th2);
     Serial.println(th12);
     Serial.println(th22);
-    if (angleVerify(th1, th2)) {
+//    because the rotating of the bigger motor consume more energy than the smaller one, so if there is two choices of angles, we choose the angle is small for motor 1
+    if (angleVerify(th1, th2) && angleVerify(th12, th22)) {
+        if (abs(th1 - cth1) < abs(th12 - cth1)) {
+            return Angles{.th1=th1, .th2=th2};
+        } else {
+            return Angles{.th1=th12, .th2=th22};
+        }
+    } else if (angleVerify(th1, th2)) {
         return Angles{.th1=th1, .th2=th2};
     } else if (angleVerify(th12, th22)) {
         return Angles{.th1=th12, .th2=th22};
@@ -138,7 +151,7 @@ void loop() {
         switch (h) {
             case 'E':
                 motor->alongTcurve(new aCurve(motor->getAxisAngle(), numbers[0], 10, numbers[1]));
-                Serial.println("drive curve");
+                Serial.println("drive T-curve");
                 break;
             case 'A':
                 motor->driveAngle(numbers[0]);
