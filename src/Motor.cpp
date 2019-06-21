@@ -7,15 +7,17 @@
 
 
 Motor::Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
-             uint8_t homePin,
-             double angToCou, uint8_t maxSpeed) : pin1(pin1),
-                                                  pin2(pin2),
-                                                  pwm_e(pwmE),
-                                                  megaEncoderCounter(megaEncoderCounter1),
-                                                  axis(axis),
-                                                  resetResponse(homePin),
-                                                  homePin(homePin),
-                                                  angleToCount(angToCou), maxSpeed(maxSpeed) {
+             uint8_t homePin, double angToCou, uint8_t maxSpeed, int homeToLimit) : pin1(pin1),
+                                                                                    pin2(pin2),
+                                                                                    pwm_e(pwmE),
+                                                                                    megaEncoderCounter(
+                                                                                            megaEncoderCounter1),
+                                                                                    axis(axis),
+                                                                                    resetResponse(homePin),
+                                                                                    homePin(homePin),
+                                                                                    angleToCount(angToCou),
+                                                                                    maxSpeed(maxSpeed),
+                                                                                    homeToLimitAngle(homeToLimit) {
     pinMode(pin1, OUTPUT);
     pinMode(pin2, OUTPUT);
     pinMode(pwmE, OUTPUT);
@@ -78,13 +80,16 @@ void Motor::activate() {
             if (resetResponse.isActivate()) {
                 Serial.println("go home completed");
                 drive(0);
-                mode = STOP;
                 resetAxis();
                 setNeedAttach(true);
+                while (getAxisAngle() > 10) {
+                    drive(-100);
+                }
                 goTo(0);
             }
             break;
         case STOP:
+            Serial.println("motor stop");
             drive(0);
             break;
         case T_CURVE:
@@ -108,15 +113,18 @@ void Motor::resetAxis() {
 }
 
 int Motor::getAxis() {
+    int tmp;
     switch (axis) {
         case 'x':
-            return megaEncoderCounter.XAxisGetCount() > INT32_MAX ? megaEncoderCounter.XAxisGetCount() - UINT32_MAX - 1
-                                                                  : megaEncoderCounter.XAxisGetCount();
+            tmp = megaEncoderCounter.XAxisGetCount() > INT32_MAX ? megaEncoderCounter.XAxisGetCount() - UINT32_MAX - 1
+                                                                 : megaEncoderCounter.XAxisGetCount();
+            break;
         case 'y':
-            return megaEncoderCounter.YAxisGetCount() > INT32_MAX ? megaEncoderCounter.YAxisGetCount() - UINT32_MAX - 1
-                                                                  : megaEncoderCounter.YAxisGetCount();
+            tmp = megaEncoderCounter.YAxisGetCount() > INT32_MAX ? megaEncoderCounter.YAxisGetCount() - UINT32_MAX - 1
+                                                                 : megaEncoderCounter.YAxisGetCount();
+            break;
     }
-    return 0;
+    return tmp + homeToLimitAngle * angleToCount;
 }
 
 void Motor::setMode(Motor::Mode mode) {

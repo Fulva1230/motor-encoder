@@ -18,19 +18,24 @@
 #define a1 15
 #define a2 5
 MegaEncoderCounter megaEncoderCounter;
-Motor motor2(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'y', 3, a2c2, 90);
-Motor motor1(PIN_3, PIN_4, PINB_PWM, megaEncoderCounter, 'x', 2, a2c1, 130);
+Motor motor2(PIN_1, PIN_2, PINA_PWM, megaEncoderCounter, 'y', 3, a2c2, 90, 180);
+Motor motor1(PIN_3, PIN_4, PINB_PWM, megaEncoderCounter, 'x', 2, a2c1, 130, 90);
 struct Angles {
     float th1;
     float th2;
 };
 
 void interrupt1() {
-    motor1.setMode(Motor::STOP);
+    if (!motor1.getNeedAttach()) {
+        motor1.setMode(Motor::STOP);
+    }
 }
 
 void interrupt2() {
-    motor2.setMode(Motor::STOP);
+    if (!motor2.getNeedAttach()) {
+        motor2.setMode(Motor::STOP);
+    }
+
 }
 
 bool angleVerify(float th1, float th2) {
@@ -205,11 +210,11 @@ void loop() {
         }
     }
     if (motor1.getNeedAttach()) {
-        attachInterrupt(digitalPinToInterrupt(motor1.getHomePin()), interrupt1, RISING);
+        attachInterrupt(digitalPinToInterrupt(motor1.getHomePin()), interrupt1, CHANGE);
         motor1.setNeedAttach(false);
     }
     if (motor2.getNeedAttach()) {
-        attachInterrupt(digitalPinToInterrupt(motor2.getHomePin()), interrupt2, RISING);
+        attachInterrupt(digitalPinToInterrupt(motor2.getHomePin()), interrupt2, CHANGE);
         motor2.setNeedAttach(false);
     }
     motor1.activate();

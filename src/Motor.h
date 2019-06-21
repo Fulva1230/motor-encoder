@@ -18,8 +18,8 @@ public:
         GO, OSCILLATE, STOP, HOME, T_CURVE
     };
 
-    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis, uint8_t homePin,
-          double angToCou, uint8_t maxSpeed);
+    Motor(uint8_t pin1, uint8_t pin2, uint8_t pwmE, MegaEncoderCounter &megaEncoderCounter1, char axis,
+          uint8_t homePin, double angToCou, uint8_t maxSpeed, int homeToLimit);
 
     void drive(long speed);
 
@@ -71,6 +71,7 @@ private:
     const uint8_t maxSpeed;
     ResetResponse resetResponse;
     PIController piController{1, 0};
+    int homeToLimitAngle;
 };
 
 
